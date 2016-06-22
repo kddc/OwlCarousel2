@@ -368,7 +368,7 @@
 	}, {
 		filter: [ 'width', 'items', 'settings' ],
 		run: function() {
-			// <-- edit by kddc
+			var margin = 0;
 			if(this.settings.autoWidth && !this.settings.loop) {
 				margin = this.settings.margin;
 			}
@@ -1220,7 +1220,9 @@
 			maximum += 1;
 			position = (position % maximum + maximum) % maximum;
 		} else {
-			position = Math.max(minimum, Math.min(maximum, position));
+			if (!(this.settings.autoWidth && this.settings.slideBy == "page")) {
+				position = Math.max(minimum, Math.min(maximum, position));
+			}
 		}
 
 		this.speed(this.duration(current, position, speed));
@@ -1872,7 +1874,9 @@
 						load = $.proxy(function(i, v) { this.load(v) }, this);
 
 					while (i++ < n) {
+						this.load(clones / 2 + this._core.relative(position) - 1);
 						this.load(clones / 2 + this._core.relative(position));
+						this.load(clones / 2 + this._core.relative(position) + 1);
 						clones && $.each(this._core.clones(this._core.relative(position)), load);
 						position++;
 					}
@@ -1910,7 +1914,7 @@
 
 		$elements.each($.proxy(function(index, element) {
 			var $element = $(element), image,
-				url = (window.devicePixelRatio > 1 && $element.attr('data-src-retina')) || $element.attr('data-src');
+				url = (window.devicePixelRatio > 1 && $element.attr('lazy-src-retina')) || $element.attr('lazy-src');
 
 			this._core.trigger('load', { element: $element, url: url }, 'lazy');
 
@@ -2933,38 +2937,38 @@
 		if (settings.dots || settings.slideBy == 'page') {
 			this._pages = [];
 
-			for (i = lower, j = 0, k = 0; i < upper; i++) {
-				var me = this;
-		    if (settings.autoWidth) {
-	        var width = this.$element.width();
-	        var currentWidth = 0;
-	        var pageStart = lower;
-	        var start = 0;
-	        var end = 0;
-	        this.$element.find('.owl-item').each(function(i, e){
-            if (i > lower && i <= upper) {
-              var itemWidth = $(e).width() + settings.margin;
-              if (currentWidth + itemWidth > width) {
-                start = pageStart - lower;
-                end = i - 1 - lower;
-                me._pages.push({
-                  start: start,
-                  end: end
-                });
-                pageStart = i - 1;
-                currentWidth = itemWidth;
-              } else {
-                currentWidth += itemWidth;
-              }
+			var me = this;
+	    if (settings.autoWidth) {
+        var width = this.$element.width();
+        var currentWidth = 0;
+        var pageStart = lower;
+        var start = 0;
+        var end = 0;
+        this.$element.find('.owl-item').each(function(i, e){
+          if (i > lower && i <= upper) {
+            var itemWidth = $(e).width() + settings.margin;
+            if (currentWidth + itemWidth > width) {
+              start = pageStart - lower;
+              end = i - 1 - lower;
+              me._pages.push({
+                start: start,
+                end: end
+              });
+              pageStart = i - 1;
+              currentWidth = itemWidth;
+            } else {
+              currentWidth += itemWidth;
             }
-		      });
-	        if (end < upper) {
-            me._pages.push({
-              start: end,
-              end: upper
-            });
-	        }
-		    } else {
+          }
+	      });
+        if (end < upper) {
+          me._pages.push({
+            start: end,
+            end: upper
+          });
+        }
+	    } else {
+				for (i = lower, j = 0, k = 0; i < upper; i++) {
 					if (j >= size || j === 0) {
 						this._pages.push({
 							start: Math.min(maximum, i - lower),
