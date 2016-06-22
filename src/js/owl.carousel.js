@@ -368,7 +368,7 @@
 	}, {
 		filter: [ 'width', 'items', 'settings' ],
 		run: function() {
-			// <-- edit by kddc
+			var margin = 0;
 			if(this.settings.autoWidth && !this.settings.loop) {
 				margin = this.settings.margin;
 			}
