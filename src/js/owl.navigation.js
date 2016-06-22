@@ -237,38 +237,38 @@
 		if (settings.dots || settings.slideBy == 'page') {
 			this._pages = [];
 
-			for (i = lower, j = 0, k = 0; i < upper; i++) {
-				var me = this;
-		    if (settings.autoWidth) {
-	        var width = this.$element.width();
-	        var currentWidth = 0;
-	        var pageStart = lower;
-	        var start = 0;
-	        var end = 0;
-	        this.$element.find('.owl-item').each(function(i, e){
-            if (i > lower && i <= upper) {
-              var itemWidth = $(e).width() + settings.margin;
-              if (currentWidth + itemWidth > width) {
-                start = pageStart - lower;
-                end = i - 1 - lower;
-                me._pages.push({
-                  start: start,
-                  end: end
-                });
-                pageStart = i - 1;
-                currentWidth = itemWidth;
-              } else {
-                currentWidth += itemWidth;
-              }
+			var me = this;
+	    if (settings.autoWidth) {
+        var width = this.$element.width();
+        var currentWidth = 0;
+        var pageStart = lower;
+        var start = 0;
+        var end = 0;
+        this.$element.find('.owl-item').each(function(i, e){
+          if (i > lower && i <= upper) {
+            var itemWidth = $(e).width() + settings.margin;
+            if (currentWidth + itemWidth > width) {
+              start = pageStart - lower;
+              end = i - 1 - lower;
+              me._pages.push({
+                start: start,
+                end: end
+              });
+              pageStart = i - 1;
+              currentWidth = itemWidth;
+            } else {
+              currentWidth += itemWidth;
             }
-		      });
-	        if (end < upper) {
-            me._pages.push({
-              start: end,
-              end: upper
-            });
-	        }
-		    } else {
+          }
+	      });
+        if (end < upper) {
+          me._pages.push({
+            start: end,
+            end: upper
+          });
+        }
+	    } else {
+				for (i = lower, j = 0, k = 0; i < upper; i++) {
 					if (j >= size || j === 0) {
 						this._pages.push({
 							start: Math.min(maximum, i - lower),
