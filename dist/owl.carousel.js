@@ -1,9 +1,4 @@
 /**
- * Owl Carousel v2.1.6
- * Copyright 2013-2016 David Deutsch
- * Licensed under MIT (https://github.com/OwlCarousel2/OwlCarousel2/blob/master/LICENSE)
- */
-/**
  * Owl carousel
  * @version 2.1.6
  * @author Bartosz Wojciechowski
@@ -292,7 +287,13 @@
 				};
 
 			!grid && this.$stage.children().css(css);
-
+			if(this.settings.autoWidth && !this.settings.loop) {
+				if(rtl) {
+					!grid && this.$stage.children().first().css({'margin-left':0});
+				} else {
+					!grid && this.$stage.children().last().css({'margin-right':0});
+				}
+			}
 			cache.css = css;
 		}
 	}, {
@@ -367,10 +368,14 @@
 	}, {
 		filter: [ 'width', 'items', 'settings' ],
 		run: function() {
+			// <-- edit by kddc
+			if(this.settings.autoWidth && !this.settings.loop) {
+				margin = this.settings.margin;
+			}
 			var padding = this.settings.stagePadding,
 				coordinates = this._coordinates,
 				css = {
-					'width': Math.ceil(Math.abs(coordinates[coordinates.length - 1])) + padding * 2,
+					'width': Math.ceil(Math.abs(coordinates[coordinates.length - 1])) + padding * 2 - margin,
 					'padding-left': padding || '',
 					'padding-right': padding || ''
 				};
@@ -783,13 +788,16 @@
 		} else {
 			minimum = this.settings.rtl ? this.coordinates(this.maximum()) : this.coordinates(this.minimum());
 			maximum = this.settings.rtl ? this.coordinates(this.minimum()) : this.coordinates(this.maximum());
+			if(this.options.autoWidth && !this.options.loop && (this.$stage.width() > this.$element.width())) {
+				maximum = -(this.$stage.width() - this.$element.width()) - (this.settings.stagePadding * 2);
+			}
 			pull = this.settings.pullDrag ? -1 * delta.x / 5 : 0;
 			stage.x = Math.max(Math.min(stage.x, minimum + pull), maximum + pull);
 		}
 
 		this._drag.stage.current = stage;
 
-		this.animate(stage.x);
+		this.animate(stage.x, true);
 	};
 
 	/**
@@ -879,7 +887,11 @@
 	 * @public
 	 * @param {Number} coordinate - The coordinate in pixels.
 	 */
-	Owl.prototype.animate = function(coordinate) {
+	Owl.prototype.animate = function(coordinate, rubberband) {
+		if(this.options.autoWidth && !this.options.loop && !rubberband && (this.$stage.width() > this.$element.width())) {
+			var max = -(this.$stage.width() - this.$element.width()) - (this.settings.stagePadding * 2);
+      coordinate = coordinate < max ? max : coordinate;
+		}
 		var animate = this.speed() > 0;
 
 		this.is('animating') && this.onTransitionEnd();
@@ -2922,17 +2934,49 @@
 			this._pages = [];
 
 			for (i = lower, j = 0, k = 0; i < upper; i++) {
-				if (j >= size || j === 0) {
-					this._pages.push({
-						start: Math.min(maximum, i - lower),
-						end: i - lower + size - 1
-					});
-					if (Math.min(maximum, i - lower) === maximum) {
-						break;
+				var me = this;
+		    if(settings.autoWidth){
+		        var width = this.$element.width();
+		        var currentWidth = 0;
+		        var pageStart = lower;
+		        var start = 0;
+		        var end = 0;
+		        this.$element.find('.owl-item').each(function(i, e){
+		            if(i > lower && i <= upper){
+		                var itemWidth = $(e).width() + settings.margin;
+		                if(currentWidth + itemWidth > width){
+		                    start = pageStart - lower;
+		                    end = i - 1 - lower;
+		                    me._pages.push({
+		                        start: start,
+		                        end: end
+		                    });
+		                    pageStart = i - 1;
+		                    currentWidth = itemWidth;
+		                } else {
+		                    currentWidth += itemWidth;
+		                }
+		            }
+		        });
+		        if(end < upper){
+		            me._pages.push({
+		                start: end,
+		                end: upper
+		            });
+		        }
+		    } else {
+					if (j >= size || j === 0) {
+						this._pages.push({
+							start: Math.min(maximum, i - lower),
+							end: i - lower + size - 1
+						});
+						if (Math.min(maximum, i - lower) === maximum) {
+							break;
+						}
+						j = 0, ++k;
 					}
-					j = 0, ++k;
+					j += this._core.mergers(this._core.relative(i));
 				}
-				j += this._core.mergers(this._core.relative(i));
 			}
 		}
 	};
