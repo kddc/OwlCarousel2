@@ -788,13 +788,16 @@
 		} else {
 			minimum = this.settings.rtl ? this.coordinates(this.maximum()) : this.coordinates(this.minimum());
 			maximum = this.settings.rtl ? this.coordinates(this.minimum()) : this.coordinates(this.maximum());
+			if(this.options.autoWidth && !this.options.loop && (this.$stage.width() > this.$element.width())) {
+				maximum = -(this.$stage.width() - this.$element.width()) - (this.settings.stagePadding * 2);
+			}
 			pull = this.settings.pullDrag ? -1 * delta.x / 5 : 0;
 			stage.x = Math.max(Math.min(stage.x, minimum + pull), maximum + pull);
 		}
 
 		this._drag.stage.current = stage;
 
-		this.animate(stage.x);
+		this.animate(stage.x, true);
 	};
 
 	/**
