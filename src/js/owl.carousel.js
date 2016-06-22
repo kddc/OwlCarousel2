@@ -1220,7 +1220,9 @@
 			maximum += 1;
 			position = (position % maximum + maximum) % maximum;
 		} else {
-			position = Math.max(minimum, Math.min(maximum, position));
+			if (!(this.settings.autoWidth && this.settings.slideBy == "page")) {
+				position = Math.max(minimum, Math.min(maximum, position));
+			}
 		}
 
 		this.speed(this.duration(current, position, speed));
