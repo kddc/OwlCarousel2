@@ -887,7 +887,11 @@
 	 * @public
 	 * @param {Number} coordinate - The coordinate in pixels.
 	 */
-	Owl.prototype.animate = function(coordinate) {
+	Owl.prototype.animate = function(coordinate, rubberband) {
+		if(this.options.autoWidth && !this.options.loop && !rubberband && (this.$stage.width() > this.$element.width())) {
+			var max = -(this.$stage.width() - this.$element.width()) - (this.settings.stagePadding * 2);
+      coordinate = coordinate < max ? max : coordinate;
+		}
 		var animate = this.speed() > 0;
 
 		this.is('animating') && this.onTransitionEnd();
