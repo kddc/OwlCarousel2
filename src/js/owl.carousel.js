@@ -287,7 +287,13 @@
 				};
 
 			!grid && this.$stage.children().css(css);
-
+			if(this.settings.autoWidth && !this.settings.loop) {
+				if(rtl) {
+					!grid && this.$stage.children().first().css({'margin-left':0});
+				} else {
+					!grid && this.$stage.children().last().css({'margin-right':0});
+				}
+			}
 			cache.css = css;
 		}
 	}, {
