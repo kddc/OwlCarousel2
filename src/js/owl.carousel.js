@@ -368,10 +368,14 @@
 	}, {
 		filter: [ 'width', 'items', 'settings' ],
 		run: function() {
+			// <-- edit by kddc
+			if(this.settings.autoWidth && !this.settings.loop) {
+				margin = this.settings.margin;
+			}
 			var padding = this.settings.stagePadding,
 				coordinates = this._coordinates,
 				css = {
-					'width': Math.ceil(Math.abs(coordinates[coordinates.length - 1])) + padding * 2,
+					'width': Math.ceil(Math.abs(coordinates[coordinates.length - 1])) + padding * 2 - margin,
 					'padding-left': padding || '',
 					'padding-right': padding || ''
 				};
