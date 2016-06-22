@@ -52,7 +52,9 @@
 						load = $.proxy(function(i, v) { this.load(v) }, this);
 
 					while (i++ < n) {
+						this.load(clones / 2 + this._core.relative(position) - 1);
 						this.load(clones / 2 + this._core.relative(position));
+						this.load(clones / 2 + this._core.relative(position) + 1);
 						clones && $.each(this._core.clones(this._core.relative(position)), load);
 						position++;
 					}
@@ -90,7 +92,7 @@
 
 		$elements.each($.proxy(function(index, element) {
 			var $element = $(element), image,
-				url = (window.devicePixelRatio > 1 && $element.attr('data-src-retina')) || $element.attr('data-src');
+				url = (window.devicePixelRatio > 1 && $element.attr('lazy-src-retina')) || $element.attr('lazy-src');
 
 			this._core.trigger('load', { element: $element, url: url }, 'lazy');
 
