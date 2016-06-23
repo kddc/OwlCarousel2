@@ -238,7 +238,7 @@
 			this._pages = [];
 
 			var me = this;
-	    if (settings.autoWidth) {
+	    if (settings.autoWidth && settings.slideBy == 'page') {
         var width = this.$element.width();
         var currentWidth = 0;
         var pageStart = lower;
