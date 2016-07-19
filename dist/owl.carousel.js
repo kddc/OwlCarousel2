@@ -2941,7 +2941,7 @@
 
 			var me = this;
 	    if (settings.autoWidth && settings.slideBy == 'page') {
-        var width = this.$element.width();
+        var width = this.$element.width() - ( settings.stagePadding * 2 );
         var currentWidth = 0;
         var pageStart = lower;
         var start = 0;
