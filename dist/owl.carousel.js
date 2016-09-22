@@ -1,4 +1,9 @@
 /**
+ * Owl Carousel v2.1.6
+ * Copyright 2013-2016 David Deutsch
+ * Licensed under MIT (https://github.com/OwlCarousel2/OwlCarousel2/blob/master/LICENSE)
+ */
+/**
  * Owl carousel
  * @version 2.1.6
  * @author Bartosz Wojciechowski
@@ -287,13 +292,7 @@
 				};
 
 			!grid && this.$stage.children().css(css);
-			if(this.settings.autoWidth && !this.settings.loop) {
-				if(rtl) {
-					!grid && this.$stage.children().first().css({'margin-left':0});
-				} else {
-					!grid && this.$stage.children().last().css({'margin-right':0});
-				}
-			}
+
 			cache.css = css;
 		}
 	}, {
@@ -368,14 +367,10 @@
 	}, {
 		filter: [ 'width', 'items', 'settings' ],
 		run: function() {
-			var margin = 0;
-			if(this.settings.autoWidth && !this.settings.loop) {
-				margin = this.settings.margin;
-			}
 			var padding = this.settings.stagePadding,
 				coordinates = this._coordinates,
 				css = {
-					'width': Math.ceil(Math.abs(coordinates[coordinates.length - 1])) + padding * 2 - margin,
+					'width': Math.ceil(Math.abs(coordinates[coordinates.length - 1])) + padding * 2,
 					'padding-left': padding || '',
 					'padding-right': padding || ''
 				};
@@ -546,7 +541,7 @@
 	 */
 	Owl.prototype.optionsLogic = function() {
 		if (this.settings.autoWidth) {
-			// this.settings.stagePadding = false;
+			this.settings.stagePadding = false;
 			this.settings.merge = false;
 		}
 	};
@@ -788,16 +783,13 @@
 		} else {
 			minimum = this.settings.rtl ? this.coordinates(this.maximum()) : this.coordinates(this.minimum());
 			maximum = this.settings.rtl ? this.coordinates(this.minimum()) : this.coordinates(this.maximum());
-			if(this.options.autoWidth && !this.options.loop && (this.$stage.width() > this.$element.width())) {
-				maximum = -(this.$stage.width() - this.$element.width()) - (this.settings.stagePadding * 2);
-			}
 			pull = this.settings.pullDrag ? -1 * delta.x / 5 : 0;
 			stage.x = Math.max(Math.min(stage.x, minimum + pull), maximum + pull);
 		}
 
 		this._drag.stage.current = stage;
 
-		this.animate(stage.x, true);
+		this.animate(stage.x);
 	};
 
 	/**
@@ -887,11 +879,7 @@
 	 * @public
 	 * @param {Number} coordinate - The coordinate in pixels.
 	 */
-	Owl.prototype.animate = function(coordinate, rubberband) {
-		if(this.options.autoWidth && !this.options.loop && !rubberband && (this.$stage.width() > this.$element.width())) {
-			var max = -(this.$stage.width() - this.$element.width()) - (this.settings.stagePadding * 2);
-      coordinate = coordinate < max ? max : coordinate;
-		}
+	Owl.prototype.animate = function(coordinate) {
 		var animate = this.speed() > 0;
 
 		this.is('animating') && this.onTransitionEnd();
@@ -1043,14 +1031,12 @@
 			maximum = this._clones.length / 2 + this._items.length - 1;
 		} else if (settings.autoWidth || settings.merge) {
 			iterator = this._items.length;
-			if (iterator > 0) {
-				reciprocalItemsWidth = this._items[--iterator].width();
-				elementWidth = this.$element.width();
-				while (iterator--) {
-					reciprocalItemsWidth += this._items[iterator].width() + this.settings.margin;
-					if (reciprocalItemsWidth > elementWidth) {
-						break;
-					}
+			reciprocalItemsWidth = this._items[--iterator].width();
+			elementWidth = this.$element.width();
+			while (iterator--) {
+				reciprocalItemsWidth += this._items[iterator].width() + this.settings.margin;
+				if (reciprocalItemsWidth > elementWidth) {
+					break;
 				}
 			}
 			maximum = iterator + 1;
@@ -1222,9 +1208,7 @@
 			maximum += 1;
 			position = (position % maximum + maximum) % maximum;
 		} else {
-			if (!(this.settings.autoWidth && this.settings.slideBy == "page")) {
-				position = Math.max(minimum, Math.min(maximum, position));
-			}
+			position = Math.max(minimum, Math.min(maximum, position));
 		}
 
 		this.speed(this.duration(current, position, speed));
@@ -1876,9 +1860,7 @@
 						load = $.proxy(function(i, v) { this.load(v) }, this);
 
 					while (i++ < n) {
-						this.load(clones / 2 + this._core.relative(position) - 1);
 						this.load(clones / 2 + this._core.relative(position));
-						this.load(clones / 2 + this._core.relative(position) + 1);
 						clones && $.each(this._core.clones(this._core.relative(position)), load);
 						position++;
 					}
@@ -1908,7 +1890,7 @@
 	 */
 	Lazy.prototype.load = function(position) {
 		var $item = this._core.$stage.children().eq(position),
-			$elements = $item && $item.find('[lazy-src]');
+			$elements = $item && $item.find('.owl-lazy');
 
 		if (!$elements || $.inArray($item.get(0), this._loaded) > -1) {
 			return;
@@ -1916,7 +1898,7 @@
 
 		$elements.each($.proxy(function(index, element) {
 			var $element = $(element), image,
-				url = (window.devicePixelRatio > 1 && $element.attr('lazy-src-retina')) || $element.attr('lazy-src');
+				url = (window.devicePixelRatio > 1 && $element.attr('data-src-retina')) || $element.attr('data-src');
 
 			this._core.trigger('load', { element: $element, url: url }, 'lazy');
 
@@ -2939,50 +2921,18 @@
 		if (settings.dots || settings.slideBy == 'page') {
 			this._pages = [];
 
-			var me = this;
-	    if (settings.autoWidth && settings.slideBy == 'page') {
-        var width = this.$element.width() - ( settings.stagePadding * 2 );
-        var currentWidth = 0;
-        var pageStart = lower;
-        var start = 0;
-        var end = 0;
-        this.$element.find('.owl-item').each(function(i, e){
-          if (i > lower && i <= upper) {
-            var itemWidth = $(e).width() + settings.margin;
-            if (currentWidth + itemWidth > width) {
-              start = pageStart - lower;
-              end = i - 1 - lower;
-              me._pages.push({
-                start: start,
-                end: end
-              });
-              pageStart = i - 1;
-              currentWidth = itemWidth;
-            } else {
-              currentWidth += itemWidth;
-            }
-          }
-	      });
-        if (end < upper) {
-          me._pages.push({
-            start: end,
-            end: upper
-          });
-        }
-	    } else {
-				for (i = lower, j = 0, k = 0; i < upper; i++) {
-					if (j >= size || j === 0) {
-						this._pages.push({
-							start: Math.min(maximum, i - lower),
-							end: i - lower + size - 1
-						});
-						if (Math.min(maximum, i - lower) === maximum) {
-							break;
-						}
-						j = 0, ++k;
+			for (i = lower, j = 0, k = 0; i < upper; i++) {
+				if (j >= size || j === 0) {
+					this._pages.push({
+						start: Math.min(maximum, i - lower),
+						end: i - lower + size - 1
+					});
+					if (Math.min(maximum, i - lower) === maximum) {
+						break;
 					}
-					j += this._core.mergers(this._core.relative(i));
+					j = 0, ++k;
 				}
+				j += this._core.mergers(this._core.relative(i));
 			}
 		}
 	};

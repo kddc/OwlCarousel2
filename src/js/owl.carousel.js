@@ -694,6 +694,12 @@
 		}
 
 		if (this.settings.touchDrag){
+			this.hammerStage = new Hammer(this.$stage[0]);
+			this.hammerStage.on('pan', function(e) {
+				if(Math.abs(e.deltaY) >= 75) {
+					this.hammerStage.stop();
+				}
+			}.bind(this));
 			this.$stage.on('touchstart.owl.core', $.proxy(this.onDragStart, this));
 			this.$stage.on('touchcancel.owl.core', $.proxy(this.onDragEnd, this));
 		}
